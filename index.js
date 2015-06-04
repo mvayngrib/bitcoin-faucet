@@ -7,12 +7,13 @@ var chalk = require('chalk')
 var express = require('express')
 var fs = require('fs')
 var bitcoin = require('bitcoinjs-lib')
+var Spender = require('spender')
 
 var PORT = process.env.FAUCET_PORT || process.env.PORT || 14004
 
 var privkey = process.env.PRIVKEY
 
-if (privkey == undefined) {
+if (!privkey) {
   var WALLET_FILE = process.env.FAUCET_WALLET || path.join(process.env.HOME || process.env.USERPROFILE, '.bitcoin-faucet', 'wallet')
 
   // initialize wallet
@@ -44,7 +45,7 @@ app.get('/withdrawal', function (req, res) {
 
   var addresses = [].concat(req.query.address)
   var amounts = [].concat(req.query.amount)
-    .map(function(a) {
+    .map(function (a) {
       return parseInt(a, 10) || 10000
     })
 
@@ -60,7 +61,7 @@ app.get('/withdrawal', function (req, res) {
     spender.fee(parseInt(req.query.fee, 10))
   }
 
-  addresses.forEach(function(addr, i) {
+  addresses.forEach(function (addr, i) {
     spender.to(addr, amounts[i])
   })
 
@@ -76,7 +77,7 @@ app.get('/withdrawal', function (req, res) {
   })
 })
 
-function sendErr(res, code, msg) {
+function sendErr (res, code, msg) {
   return res
     .status(code)
     .send({
