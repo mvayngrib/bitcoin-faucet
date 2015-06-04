@@ -39,53 +39,52 @@ app.get('/', function (req, res) {
 // only bitcoin testnet supported for now
 app.get('/withdrawal', function (req, res) {
   if (!req.query.address) {
-    return res.status(422).send({ status: 'error', data: { message: 'You forgot to set the "address" parameter.' } })
+    return sendErr(res, 422, 'You forgot to set the "address" parameter.')
   }
 
-  // satoshis
-  var amount = parseInt(req.query.amount, 10) || 10000
+  var addresses = [].concat(req.query.address)
+  var amounts = [].concat(req.query.amount)
+    .map(function(a) {
+      return parseInt(a, 10) || 10000
+    })
 
-  spend(keypair, req.query.address, amount, function (err, txId) {
-    if (err) return res.status(500).send({status: 'error', data: {message: err.message}})
-    res.send({status: 'success', data: {txId: txId}})
+  if (addresses.length !== amounts.length) {
+    return sendErr(res, 422, 'You have an unequal number of "address" and "amount" parameters')
+  }
+
+  var spender = new Spender('testnet')
+    .blockchain(blockchain)
+    .from(privkey)
+
+  if ('fee' in req.query) {
+    spender.fee(parseInt(req.query.fee, 10))
+  }
+
+  addresses.forEach(function(addr, i) {
+    spender.to(addr, amounts[i])
+  })
+
+  spender.execute(function (err, tx) {
+    if (err) return sendErr(res, 500, err.message)
+
+    res.send({
+      status: 'success',
+      data: {
+        txId: tx.getId()
+      }
+    })
   })
 })
 
-function spend(keypair, toAddress, amount, callback) {
-  blockchain.addresses.unspents(address, function (err, utxos) {
-    if (err) return callback(err)
-
-    var balance = utxos.reduce(function (amount, unspent) {
-      return unspent.value + amount
-    }, 0)
-
-    if (amount > balance) {
-      return callback(new Error('Address doesn\'t contain enough money to send.'))
-    }
-
-    var tx = new bitcoin.TransactionBuilder()
-    tx.addOutput(toAddress, amount)
-
-    var change = balance - amount
-    if (change > 0) {
-      tx.addOutput(address, change)
-    }
-
-    utxos.forEach(function (unspent) {
-      tx.addInput(unspent.txId, unspent.vout)
+function sendErr(res, code, msg) {
+  return res
+    .status(code)
+    .send({
+      status: 'error',
+      data: {
+        message: msg
+      }
     })
-
-    utxos.forEach(function (unspent, i) {
-      tx.sign(i, keypair)
-    })
-
-    var txHex = tx.build().toHex()
-    blockchain.transactions.propagate(txHex, function (err, result) {
-      if (err) return callback(err)
-
-      callback(null, result.txId)
-    })
-  })
 }
 
 var server = http.createServer(app)

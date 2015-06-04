@@ -28,7 +28,8 @@
     "bitcoinjs-lib": "git://github.com/bitcoinjs/bitcoinjs-lib",
     "cb-insight": "^0.1.0",
     "chalk": "^1.0.0",
-    "express": "^4.12.3"
+    "express": "^4.12.3",
+    "spender": "git://github.com/mvayngrib/spender"
   },
   "bin": {
     "bitcoin-faucet": "./index.js"
