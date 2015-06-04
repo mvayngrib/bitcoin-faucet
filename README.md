@@ -35,12 +35,12 @@ You can configure the faucet with the following commands:
 
 ### Request Funds
 
-CURL or make browser GET request to `/withdrawal` with params `address` and optional `amount`. If amount not specified, 10000 satoshi is used.
+CURL or make browser GET request to `/withdrawal` with params `address` and optional `amount`. If amount not specified, 10000 satoshi is used. If optional parameter `fee` is unspecified, a fee of 10000 satoshis will be used.
 
 **Example**:
 
     http://localhost:14004/withdrawal?address=msj42CCGruhRsFrGATiUuh25dtxYtnpbTx&amount=25000
-
+    
 response:
 
     {
@@ -50,6 +50,9 @@ response:
       }
     }
 
+**Example 2**: (Withdraw to multiple addresses in one tx)
+
+    http://localhost:14004/withdrawal?address=msj42CCGruhRsFrGATiUuh25dtxYtnpbTx&amount=25000&address=mhKnKtPFCbYpC61buDMgSBB57mqiWvXCUo&amount=10000&address=mhayqWutFBBvVRRLcZpmjiDkH5Qi7f2M3m&amount=12345
 
 #### Why GET?
 
