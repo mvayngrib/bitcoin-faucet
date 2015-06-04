@@ -44,6 +44,18 @@ app.get('/withdrawal', function (req, res) {
   }
 
   var addresses = [].concat(req.query.address)
+  var valid = addresses.every(function (a) {
+    try {
+      bitcoin.Address.fromBase58Check(a)
+      return true
+    } catch (err) {
+      sendErr(res, 422, 'Invalid address: ' + a)
+      return false
+    }
+  })
+
+  if (!valid) return
+
   var amounts = [].concat(req.query.amount)
     .map(function (a) {
       return parseInt(a, 10) || 10000
