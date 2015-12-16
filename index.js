@@ -2,12 +2,15 @@
 
 var http = require('http')
 var path = require('path')
-var Blockchain = require('cb-insight')
+// var Blockchain = require('cb-insight')
+var Blockchain = require('cb-blockr')
 var chalk = require('chalk')
 var express = require('express')
 var fs = require('fs')
 var bitcoin = require('bitcoinjs-lib')
 var Spender = require('spender')
+var networkName = 'testnet'
+var network = bitcoin.networks[networkName]
 
 var PORT = process.env.FAUCET_PORT || process.env.PORT || 14004
 
@@ -18,17 +21,17 @@ if (!privkey) {
 
   // initialize wallet
   if (!fs.existsSync(WALLET_FILE)) {
-    privkey = bitcoin.ECPair.makeRandom({network: bitcoin.networks.testnet, compressed: false}).toWIF()
+    privkey = bitcoin.ECKey.makeRandom().toWIF()
     fs.writeFileSync(WALLET_FILE, privkey, 'utf-8')
   } else {
     privkey = fs.readFileSync(WALLET_FILE, 'utf-8')
   }
 }
 
-var keypair = bitcoin.ECPair.fromWIF(privkey)
-var address = keypair.getAddress().toString()
+var key = bitcoin.ECKey.fromWIF(privkey)
+var address = key.pub.getAddress(network).toString()
 
-var blockchain = new Blockchain('https://test-insight.bitpay.com')
+var blockchain = new Blockchain(networkName)
 
 var app = express()
 app.get('/', function (req, res) {
@@ -65,7 +68,7 @@ app.get('/withdrawal', function (req, res) {
     return sendErr(res, 422, 'You have an unequal number of "address" and "amount" parameters')
   }
 
-  var spender = new Spender('testnet')
+  var spender = new Spender(networkName)
     .blockchain(blockchain)
     .from(privkey)
 
@@ -74,11 +77,15 @@ app.get('/withdrawal', function (req, res) {
   }
 
   addresses.forEach(function (addr, i) {
+    console.log('sending', amounts[i], 'to', addr)
     spender.to(addr, amounts[i])
   })
 
   spender.execute(function (err, tx) {
-    if (err) return sendErr(res, 500, err.message)
+    if (err) {
+      console.error(err)
+      return sendErr(res, 500, err.message)
+    }
 
     res.send({
       status: 'success',
