@@ -41,7 +41,7 @@ app.get('/', function (req, res) {
 })
 
 // only bitcoin testnet supported for now
-app.get('/withdrawal', function (req, res) {
+app.get('/withdraw', function (req, res) {
   if (!req.query.address) {
     return sendErr(res, 422, 'You forgot to set the "address" parameter.')
   }
