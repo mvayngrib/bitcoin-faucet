@@ -24,7 +24,7 @@ if (!privkey) {
     privkey = bitcoin.ECKey.makeRandom().toWIF()
     fs.writeFileSync(WALLET_FILE, privkey, 'utf-8')
   } else {
-    privkey = fs.readFileSync(WALLET_FILE, 'utf-8')
+    privkey = fs.readFileSync(WALLET_FILE, 'utf-8').trim()
   }
 }
 
