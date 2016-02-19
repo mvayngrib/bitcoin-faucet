@@ -81,6 +81,11 @@ app.get('/withdraw', function (req, res) {
     spender.to(addr, amounts[i])
   })
 
+  if (addresses.length < 3) {
+    // split up sending change to self
+    spender.to(address, 100000)
+  }
+
   spender.execute(function (err, tx) {
     if (err) {
       console.error(err)
