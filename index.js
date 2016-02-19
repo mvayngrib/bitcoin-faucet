@@ -8,7 +8,7 @@ var chalk = require('chalk')
 var express = require('express')
 var fs = require('fs')
 var bitcoin = require('bitcoinjs-lib')
-var Spender = require('spender')
+var Spender = require('@tradle/spender')
 var networkName = 'testnet'
 var network = bitcoin.networks[networkName]
 
